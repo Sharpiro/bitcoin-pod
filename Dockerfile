@@ -28,5 +28,6 @@ ENTRYPOINT [ "./run.sh" ]
 # podman run -it --rm --name bitcoin_runner_test -v ~/b_node_ssd/dot_bitcoin:/root/.bitcoin:Z bitcoin_runner
 # podman run -d --rm --name bitcoin_runner_test -v ~/b_node_ssd/dot_bitcoin:/root/.bitcoin:Z bitcoin_runner
 # podman run -d --name bitcoin_runner_test -v ~/b_node_ssd/dot_bitcoin:/root/.bitcoin:Z bitcoin_runner
+# podman run -d --name bitcoin_runner_test -v b_node_home:/root/.bitcoin bitcoin_runner
 # podman exec -it bitcoin_runner_test bash
 # podman exec -it bitcoin_runner_test tail -f ~/.bitcoin/debug.log
