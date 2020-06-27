@@ -20,5 +20,6 @@ RUN sha256sum --check --ignore-missing SHA256SUMS.asc
 RUN gpg --verify SHA256SUMS.asc
 
 RUN tar -xzf ${bitcoin_tarball}
+RUN rm ${bitcoin_tarball}
 
 CMD [ "bitcoin-0.20.0/bin/bitcoind", "-onlynet=onion", "-proxy=127.0.0.1:9050", "-txindex=1", "-walletbroadcast=0" ]
