@@ -18,11 +18,10 @@ RUN gpg --verify eps-v0.2.1.1.tar.gz.asc
 
 RUN tar -xzf eps-v0.2.1.1.tar.gz
 RUN rm eps-v0.2.1.1.tar.gz
-RUN cp electrum-personal-server-eps-v0.2.1.1/config.ini_sample /root/config.ini
 WORKDIR /app/electrum-personal-server-eps-v0.2.1.1
+RUN sed "s/wallet_filename =/wallet_filename = electrumpersonalserver/" config.ini_sample > /root/config.ini
 RUN pip3 install --user .
 
 WORKDIR /root
 
-# CMD ["/root/.local/bin/electrum-personal-server", "config.ini"]
-CMD ["bash"]
+CMD ["/root/.local/bin/electrum-personal-server", "config.ini"]
