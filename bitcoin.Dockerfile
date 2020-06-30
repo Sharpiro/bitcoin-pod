@@ -20,4 +20,6 @@ RUN gpg --verify SHA256SUMS.asc
 
 RUN tar -xzf ${bitcoin_tarball} && rm ${bitcoin_tarball}
 
-CMD [ "bitcoin-0.20.0/bin/bitcoind", "-onlynet=onion", "-proxy=127.0.0.1:9050", "-txindex=1", "-walletbroadcast=0" ]
+COPY bitcoin.conf /root/.bitcoin/bitcoin.conf
+
+CMD [ "bitcoin-0.20.0/bin/bitcoind" ]

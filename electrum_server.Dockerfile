@@ -1,8 +1,5 @@
 FROM ubuntu:18.04
 
-# ARG wallet_master_pub
-# RUN echo ${wallet_master_pub}
-# ENV wallet_master_pub=xpub_required
 EXPOSE 50002
 WORKDIR /app
 
@@ -19,11 +16,6 @@ RUN gpg --verify eps-v0.2.1.1.tar.gz.asc
 
 RUN tar -xzf eps-v0.2.1.1.tar.gz && rm eps-v0.2.1.1.tar.gz
 WORKDIR /app/electrum-personal-server-eps-v0.2.1.1
-# RUN read -p "enter wallet master public key: " wallet_master_pub && echo $wallet_master_pub
-# RUN read -p "enter wallet master public key: " wallet_master_pub
-# RUN echo $wallet_master_pub
-# RUN sed "s/#any_name_works.*/wallet1 = $wallet_master_pub/" config.ini_sample > /root/config.ini
-# RUN sed -i "s/wallet_filename =/wallet_filename = electrumpersonalserver/" /root/config.ini
 RUN pip3 install --user .
 
 WORKDIR /root
