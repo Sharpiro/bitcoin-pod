@@ -20,6 +20,6 @@ RUN gpg --verify SHA256SUMS.asc
 
 RUN tar -xzf ${bitcoin_tarball} && rm ${bitcoin_tarball}
 
-COPY bitcoin.conf /root/.bitcoin/bitcoin.conf
+COPY bitcoin.conf /root/bitcoin.conf
 
-CMD [ "bitcoin-0.20.0/bin/bitcoind" ]
+CMD [ "bitcoin-0.20.0/bin/bitcoind", "-conf=/root/bitcoin.conf" ]
