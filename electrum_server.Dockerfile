@@ -20,4 +20,6 @@ RUN pip3 install --user .
 
 WORKDIR /root
 
-CMD [".local/bin/electrum-personal-server", ".bitcoin/eps_config.ini"]
+COPY config.ini /root/config.ini
+
+CMD [".local/bin/electrum-personal-server", "config.ini"]

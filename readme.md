@@ -14,7 +14,7 @@ The purpose is to setup a [bitcoin](https://github.com/bitcoin/bitcoin) full nod
 
 ### Encrypted disk (optional)
 
-You probably want to ensure that podman will save its data to an encryption portion of your disk.  If your entire disk is encrypted, then you can skip this.
+You probably want to ensure that podman will save its data to an encrypted portion of your disk.  If your entire disk is encrypted, then you can skip this.
 
 The simplest way I've found to have podman create its data on a separate encrypted device is to use a symbolic link.
 
@@ -35,12 +35,12 @@ ln -s ~/mounts/encrypted_drive/containers ~/.local/share/containers
 
 ### Electrum Personal Server Prerequisites
 
-### Setup config
+#### Setup config
 
 * copy `config.ini_sample` to `config.ini`
 * update `config.ini` with at least your master public keys
 
-### Setup wallet
+#### Setup wallet
 
 EPS recommends creating an EPS specific wallet in your full node.
 
@@ -66,4 +66,49 @@ podman build -t bitcoin -f bitcoin.Dockerfile .
 podman build -t electrum_server -f electrum_server.Dockerfile
 ```
 
-These containers are intended to be ephemeral.  By default if you need to modify a configuration file, you will need to rebuild the images.  An alternative to this is to provide your configs as volume mounts to allow them to persist outside of the container.  Then they can be modified and the container would only need to be restarted.
+These images and containers are intended to be ephemeral.  By default if you need to modify a configuration file, you will need to rebuild the images.  An alternative to this is to provide your configs as volume mounts to allow them to persist outside of the container.  Then they can be modified and the container would only need to be restarted.
+
+## Running Containers
+
+### create pod
+
+```sh
+podman pod create --name bitcoin_pod -p 8332:8332 -p 50002:50002
+```
+
+### create tor container
+
+```sh
+podman run -d --pod bitcoin_pod --name tor_container -v /root/.tor tor
+```
+
+### create bitcoin container
+
+```sh
+podman run -d --pod bitcoin_pod --name bitcoin_container \
+  -v ~/b_node_ssd/podman_volumes/b_node_home/_data:/root/.bitcoin \
+  --volumes-from tor_container bitcoin
+```
+
+### create Electrum Personal Server container
+
+```sh
+podman run -d --pod bitcoin_pod --name electrum_server_container \
+  -v ~/b_node_ssd/podman_volumes/b_node_home/_data/.cookie:/root/.bitcoin/.cookie electrum_server
+```
+
+* currently EPS needs to be run twice to get it working.
+  * the first run does the imports of addresses and then exits
+  * the second run actually starts the server
+* re-scanning
+  * if you need to load in historical transactions you will need to run the container with an one-time alternative command
+    * `.local/bin/electrum-personal-server --rescan config.ini`
+
+### Todo
+
+* probe doing copy of sample configs as is currently being done, but instead of copying them in at build time, instead mount the individual config files at runtime
+  * pros
+    * wouldn't need to rebuild image when configs are changed
+  * cons
+    * Problematic w/ anonymous volumes
+

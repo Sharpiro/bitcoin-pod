@@ -17,8 +17,8 @@ podman run -d --pod bitcoin_pod --name bitcoin_container \
   --volumes-from tor_container bitcoin
 
 #echo creating eps container
-#podman run -d --pod bitcoin_pod --name electrum_server_container \
-#  -v ~/b_node_ssd/podman_volumes/b_node_home/_data/:/root/.bitcoin/.cookie electrum_server
+podman run -d --pod bitcoin_pod --name electrum_server_container \
+  -v ~/b_node_ssd/podman_volumes/b_node_home/_data/.cookie:/root/.bitcoin/.cookie electrum_server
 
 #echo creating eps wallet in bitcoin core
 #podman exec bitcoin_container bitcoin-0.20.0/bin/bitcoin-cli createwallet electrumpersonalserver true
