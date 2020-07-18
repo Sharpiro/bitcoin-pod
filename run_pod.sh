@@ -16,7 +16,7 @@ podman run -d --pod bitcoin_pod --name bitcoin_container \
   -v ~/b_node_ssd/podman_volumes/b_node_home/_data:/root/.bitcoin \
   --volumes-from tor_container bitcoin
 
-#echo creating eps container
+echo creating eps container
 podman run -d --pod bitcoin_pod --name electrum_server_container \
   -v ~/b_node_ssd/podman_volumes/b_node_home/_data/.cookie:/root/.bitcoin/.cookie electrum_server
 

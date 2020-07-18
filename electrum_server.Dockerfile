@@ -20,6 +20,6 @@ RUN pip3 install --user .
 
 WORKDIR /root
 
-COPY config.ini /root/config.ini
+COPY config/eps-config.ini /root/eps-config.ini
 
-CMD [".local/bin/electrum-personal-server", "config.ini"]
+CMD [".local/bin/electrum-personal-server", "/root/eps-config.ini"]

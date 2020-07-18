@@ -111,4 +111,3 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
     * wouldn't need to rebuild image when configs are changed
   * cons
     * Problematic w/ anonymous volumes
-
