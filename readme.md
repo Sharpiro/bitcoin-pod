@@ -111,3 +111,11 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
     * wouldn't need to rebuild image when configs are changed
   * cons
     * Problematic w/ anonymous volumes
+* add prompt to `pod_run.sh` to optionally call `pod_rm.sh` if it already exists
+
+### FAQ
+
+* "Requested wallet does not exist or is not loaded. Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
+  * run the following on your full node:
+  * `bitcoin-cli loadwallet electrumpersonalserver`
+  * if the above doesn't work, your node's wallet may be corrupt and will need to be re-created, and then re-scanned.
