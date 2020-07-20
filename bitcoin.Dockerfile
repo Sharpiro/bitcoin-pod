@@ -15,11 +15,9 @@ WORKDIR /app
 RUN wget https://bitcoincore.org/bin/bitcoin-core-0.20.0/SHA256SUMS.asc
 RUN wget https://bitcoincore.org/bin/bitcoin-core-0.20.0/${bitcoin_tarball}
 RUN sha256sum --check --ignore-missing SHA256SUMS.asc
-RUN gpg --recv-keys 01EA5486DE18A882D4C2684590C8019E36C2E964
+RUN gpg --keyserver keys.gnupg.net --recv-keys 01EA5486DE18A882D4C2684590C8019E36C2E964
 RUN gpg --verify SHA256SUMS.asc
 
 RUN tar -xzf ${bitcoin_tarball} && rm ${bitcoin_tarball}
-
-COPY config/bitcoin.conf /root/bitcoin.conf
 
 CMD [ "bitcoin-0.20.0/bin/bitcoind", "-conf=/root/bitcoin.conf" ]

@@ -104,16 +104,24 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
   * if you need to load in historical transactions you will need to run the container with an one-time alternative command
     * `.local/bin/electrum-personal-server --rescan config.ini`
 
-### Todo
+## Logging
 
-* probe doing copy of sample configs as is currently being done, but instead of copying them in at build time, instead mount the individual config files at runtime
-  * pros
-    * wouldn't need to rebuild image when configs are changed
-  * cons
-    * Problematic w/ anonymous volumes
+```sh
+# tor
+tail -f /tmp/tor
+# bitcoin
+tail -f $bitcoin_dir/debug.log
+#electrum personal server
+tail -f /tmp/electrumpersonalserver.log
+```
+
+## Todo
+
 * add prompt to `pod_run.sh` to optionally call `pod_rm.sh` if it already exists
+* standardize "app" directories vs home folder for running apps
+* create symlinks so that one can have universally named paths on both disk and in docs
 
-### FAQ
+## FAQ
 
 * "Requested wallet does not exist or is not loaded. Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
   * run the following on your full node:
