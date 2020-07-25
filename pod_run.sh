@@ -10,11 +10,11 @@ podman run -d --pod bitcoin_pod --name tor_container \
 echo creating bitcoin container
 podman run -d --pod bitcoin_pod --name bitcoin_container \
   -v ./config/bitcoin.conf:/root/bitcoin.conf \
-  -v ~/b_node_ssd/podman_volumes/b_node_home/_data:/root/.bitcoin \
+  -v ~/bitcoin_data:/root/.bitcoin \
   -v tor_cookie_ephemeral:/root/.tor bitcoin
 
 echo creating eps container
 podman run -d --pod bitcoin_pod --name electrum_server_container \
   -v ./config/eps-config.ini:/root/eps-config.ini \
-  -v ~/b_node_ssd/podman_volumes/b_node_home/_data:/root/.bitcoin \
+  -v ~/bitcoin_data:/root/.bitcoin \
   -v /tmp:/tmp electrum_server

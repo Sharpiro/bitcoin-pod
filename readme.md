@@ -19,8 +19,8 @@ You probably want to ensure that podman will save its data to an encrypted porti
 The simplest way I've found to have podman create its data on a separate encrypted device is to use a symbolic link.
 
 ```sh
-cp -rp ~/.local/share/containers ~/mounts/encrypted_drive
-ln -s ~/mounts/encrypted_drive/containers ~/.local/share/containers
+cp -rp ~/.local/share/containers ~/my_mounts/my_encrypted_drive
+ln -s ~/my_mounts/my_encrypted_drive/containers ~/.local/share/containers
 ```
 
 ### Tor Prerequisites
@@ -31,7 +31,7 @@ ln -s ~/mounts/encrypted_drive/containers ~/.local/share/containers
 ### Bitcoin Prerequisites
 
 * copy `bitcoin.conf.sample` to `bitcoin.conf`
-* update `bitcoin.conf` if you don't want the default tor configuration
+* update `bitcoin.conf` if you don't want the default bitcoin configuration
 
 ### Electrum Personal Server Prerequisites
 
@@ -60,9 +60,29 @@ wallet_filename = electrumpersonalserver
 
 Once all configurations have been setup, the following can be executed individually or all together depending on your setup
 
+### tor
+
 ```sh
 podman build -t tor -f tor.Dockerfile .
-podman build -t bitcoin -f bitcoin.Dockerfile .
+```
+
+### bitcoin
+
+Setup `bitcoin_arch` to choose your machine's architecture.
+With no argument, arm-32 will be the default.
+
+The following are currently supported:
+
+* bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz
+* bitcoin-0.20.0-x86_64-linux-gnu.tar.gz
+
+```sh
+podman build -t bitcoin -f bitcoin.Dockerfile --build-arg $bitcoin_arch
+```
+
+### electrum personal server
+
+```sh
 podman build -t electrum_server -f electrum_server.Dockerfile
 ```
 
@@ -86,7 +106,7 @@ podman run -d --pod bitcoin_pod --name tor_container -v /root/.tor tor
 
 ```sh
 podman run -d --pod bitcoin_pod --name bitcoin_container \
-  -v ~/b_node_ssd/podman_volumes/b_node_home/_data:/root/.bitcoin \
+  -v ~/bitcoin_data:/root/.bitcoin \
   --volumes-from tor_container bitcoin
 ```
 
@@ -94,32 +114,32 @@ podman run -d --pod bitcoin_pod --name bitcoin_container \
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
-  -v ~/b_node_ssd/podman_volumes/b_node_home/_data/.cookie:/root/.bitcoin/.cookie electrum_server
+  -v ~/bitcoin_data/.cookie:/root/.bitcoin/.cookie electrum_server
 ```
 
 * currently EPS needs to be run twice to get it working.
   * the first run does the imports of addresses and then exits
   * the second run actually starts the server
 * re-scanning
-  * if you need to load in historical transactions you will need to run the container with an one-time alternative command
+  * if you need to load in historical transactions you will need to run the container with a one-time alternative command
     * `.local/bin/electrum-personal-server --rescan config.ini`
 
 ## Logging
 
 ```sh
 # tor
-tail -f /tmp/tor
+/tmp/tor
 # bitcoin
-tail -f $bitcoin_dir/debug.log
+bitcoin_data/debug.log
 #electrum personal server
-tail -f /tmp/electrumpersonalserver.log
+/tmp/electrumpersonalserver.log
 ```
 
-## Todo
+## Todo/Limitations
 
+* refactor readme to be grouped by app
+* app versions hard-coded
 * add prompt to `pod_run.sh` to optionally call `pod_rm.sh` if it already exists
-* standardize "app" directories vs home folder for running apps
-* create symlinks so that one can have universally named paths on both disk and in docs
 
 ## FAQ
 
