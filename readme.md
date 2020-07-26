@@ -63,7 +63,7 @@ Once all configurations have been setup, the following can be executed individua
 ### tor
 
 ```sh
-podman build -t tor -f tor.Dockerfile .
+podman build -t tor -f tor.Dockerfile
 ```
 
 ### bitcoin
@@ -73,8 +73,8 @@ With no argument, arm-32 will be the default.
 
 The following are currently supported:
 
-* bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz
-* bitcoin-0.20.0-x86_64-linux-gnu.tar.gz
+* `bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz`
+* `bitcoin-0.20.0-x86_64-linux-gnu.tar.gz`
 
 ```sh
 podman build -t bitcoin -f bitcoin.Dockerfile --build-arg $bitcoin_arch
@@ -99,22 +99,28 @@ podman pod create --name bitcoin_pod -p 8332:8332 -p 50002:50002
 ### create tor container
 
 ```sh
-podman run -d --pod bitcoin_pod --name tor_container -v /root/.tor tor
+podman run -d --pod bitcoin_pod --name tor_container \
+  -v ./config/torrc:/root/torrc \
+  -v tor_cookie_ephemeral:/root/.tor \
+  -v /tmp/tor:/var/log/tor tor
 ```
 
 ### create bitcoin container
 
 ```sh
 podman run -d --pod bitcoin_pod --name bitcoin_container \
+  -v ./config/bitcoin.conf:/root/bitcoin.conf \
   -v ~/bitcoin_data:/root/.bitcoin \
-  --volumes-from tor_container bitcoin
+  -v tor_cookie_ephemeral:/root/.tor bitcoin
 ```
 
 ### create Electrum Personal Server container
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
-  -v ~/bitcoin_data/.cookie:/root/.bitcoin/.cookie electrum_server
+  -v ./config/eps-config.ini:/root/eps-config.ini \
+  -v ~/bitcoin_data:/root/.bitcoin \
+  -v /tmp:/tmp electrum_server
 ```
 
 * currently EPS needs to be run twice to get it working.
@@ -123,6 +129,14 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
 * re-scanning
   * if you need to load in historical transactions you will need to run the container with a one-time alternative command
     * `.local/bin/electrum-personal-server --rescan config.ini`
+
+#### accessing from remote machine
+
+if you want to run electrum from say, a laptop, but your containers are running on a remote server, a good way to setup a secure connection to the running electrum personal server is to create an SSH tunnel.  You can then run electrum as if your server was on your local machine.  See EPS documentation for more details.
+
+```sh
+ssh -fNT -L localhost:50002:{host-or-ip}:50002 {host-or-ip}
+```
 
 ## Logging
 
@@ -138,7 +152,7 @@ bitcoin_data/debug.log
 ## Todo/Limitations
 
 * refactor readme to be grouped by app
-* app versions hard-coded
+* app versions are hard-coded
 * add prompt to `pod_run.sh` to optionally call `pod_rm.sh` if it already exists
 
 ## FAQ
