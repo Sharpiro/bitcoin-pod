@@ -1,3 +1,5 @@
 torrc
 bitcoin.conf
 eps-config.ini
+__pycache__
+rescan_poc

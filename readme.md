@@ -1,20 +1,32 @@
 # Bitcoin Pod
 
-The purpose is to setup a [bitcoin](https://github.com/bitcoin/bitcoin) full node with [electrum personal server](https://github.com/chris-belcher/electrum-personal-server) all configured to run behind [Tor](https://www.torproject.org/) by default, and all running inside rootless containers.
+The purpose of bitcoin_pod is to setup a [bitcoin](https://github.com/bitcoin/bitcoin) full node configured to run behind [Tor](https://www.torproject.org/) by default, running inside rootless containers.
+
+All containers are intended to be ephemeral.
+By default if you need to modify a configuration file, you will then need to restart that container for the change to take affect.
 
 ## Prerequisites
 
 ### Dependencies
 
-* [podman](https://podman.io/getting-started/installation.html) version 1.9.3
+* [podman](https://podman.io/getting-started/installation.html) (tested with v2.0.3)
   * currently only supports podman for "pods" support, but could be modified to use docker
 * debian-based host
-  * only tested successfully on debian-based hosts
-  * on fedora there seems to be a bug with podman and volume mount permissions
+  * only tested successfully on raspbian hosts
+
+### Remote access via ssh tunnels (optional)
+
+if you want to access exposed bitcoin_pod ports from a local machine, but your containers are running on a remote server, a good way to accomplish this is by setting setup a secure connection with a background SSH tunnel.
+You can then access bitcoin_pod exposed ports as if the container host was running locally.
+
+```sh
+ssh -fNT -L localhost:{port}:{host-or-ip}:{port} {host-or-ip}
+```
 
 ### Encrypted disk (optional)
 
-You probably want to ensure that podman will save its data to an encrypted portion of your disk.  If your entire disk is encrypted, then you can skip this.
+You probably want to ensure that podman will save its data to an encrypted portion of your disk.
+If your entire disk is encrypted, then you can skip this.
 
 The simplest way I've found to have podman create its data on a separate encrypted device is to use a symbolic link.
 
@@ -23,17 +35,93 @@ cp -rp ~/.local/share/containers ~/my_mounts/my_encrypted_drive
 ln -s ~/my_mounts/my_encrypted_drive/containers ~/.local/share/containers
 ```
 
-### Tor Prerequisites
+## Create Pod
+
+Create the bitcoin_pod to house the various containers and allow them to selectively share resources.
+
+* 8332 is default bitcoin RPC server
+* 50002 is default electrum personal server
+
+Add or remove ports exposed to the host as needed.
+The below command is the default.
+
+```sh
+podman pod create --name bitcoin_pod -p 8332:8332 -p 50002:50002
+```
+
+## Logs
+
+Default log volume mounts have been setup so that logs can be viewed from the host machine and will persist between container restarts and deletions.
+See individual `Logs` sections for details.
+
+## Tor
+
+### Prerequisites
 
 * copy `torrc.sample` to `torrc`
 * update `torrc` if you don't want the default tor configuration
 
-### Bitcoin Prerequisites
+### Build
+
+```sh
+podman build -t tor -f tor.Dockerfile
+```
+
+### Run
+
+```sh
+podman run -d --pod bitcoin_pod --name tor_container \
+  -v ./torrc:/root/torrc \
+  -v tor_cookie_ephemeral:/root/.tor \
+  -v /tmp/tor:/var/log/tor tor
+```
+
+### Logs
+
+```sh
+/tmp/tor_notices.log
+/tmp/tor_debug.log
+```
+
+## Bitcoin
+
+### Prerequisites
 
 * copy `bitcoin.conf.sample` to `bitcoin.conf`
 * update `bitcoin.conf` if you don't want the default bitcoin configuration
 
-### Electrum Personal Server Prerequisites
+### Build
+
+Setup `bitcoin_arch` to choose your machine's architecture.
+With no argument, arm-32 will be the default.
+
+The following are currently supported:
+
+* `bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz`
+* `bitcoin-0.20.0-x86_64-linux-gnu.tar.gz`
+
+```sh
+podman build -t bitcoin -f bitcoin.Dockerfile --build-arg $bitcoin_arch
+```
+
+### Run
+
+```sh
+podman run -d --pod bitcoin_pod --name bitcoin_container \
+  -v ./bitcoin.conf:/root/bitcoin.conf \
+  -v ~/bitcoin_data:/root/.bitcoin \
+  -v tor_cookie_ephemeral:/root/.tor bitcoin
+```
+
+### Logs
+
+```sh
+bitcoin_data/debug.log
+```
+
+## Electrum Personal Server
+
+### Prerequisites
 
 #### Setup config
 
@@ -56,69 +144,17 @@ Your EPS `config.ini` will need to be updated with the correct wallet name or em
 wallet_filename = electrumpersonalserver
 ```
 
-## Building Images
-
-Once all configurations have been setup, the following can be executed individually or all together depending on your setup
-
-### tor
-
-```sh
-podman build -t tor -f tor.Dockerfile
-```
-
-### bitcoin
-
-Setup `bitcoin_arch` to choose your machine's architecture.
-With no argument, arm-32 will be the default.
-
-The following are currently supported:
-
-* `bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz`
-* `bitcoin-0.20.0-x86_64-linux-gnu.tar.gz`
-
-```sh
-podman build -t bitcoin -f bitcoin.Dockerfile --build-arg $bitcoin_arch
-```
-
-### electrum personal server
+### Build
 
 ```sh
 podman build -t electrum_server -f electrum_server.Dockerfile
 ```
 
-These images and containers are intended to be ephemeral.  By default if you need to modify a configuration file, you will need to rebuild the images.  An alternative to this is to provide your configs as volume mounts to allow them to persist outside of the container.  Then they can be modified and the container would only need to be restarted.
-
-## Running Containers
-
-### create pod
-
-```sh
-podman pod create --name bitcoin_pod -p 8332:8332 -p 50002:50002
-```
-
-### create tor container
-
-```sh
-podman run -d --pod bitcoin_pod --name tor_container \
-  -v ./config/torrc:/root/torrc \
-  -v tor_cookie_ephemeral:/root/.tor \
-  -v /tmp/tor:/var/log/tor tor
-```
-
-### create bitcoin container
-
-```sh
-podman run -d --pod bitcoin_pod --name bitcoin_container \
-  -v ./config/bitcoin.conf:/root/bitcoin.conf \
-  -v ~/bitcoin_data:/root/.bitcoin \
-  -v tor_cookie_ephemeral:/root/.tor bitcoin
-```
-
-### create Electrum Personal Server container
+### Run
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
-  -v ./config/eps-config.ini:/root/eps-config.ini \
+  -v ./eps-config.ini:/root/eps-config.ini \
   -v ~/bitcoin_data:/root/.bitcoin \
   -v /tmp:/tmp electrum_server
 ```
@@ -130,34 +166,20 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
   * if you need to load in historical transactions you will need to run the container with a one-time alternative command
     * `.local/bin/electrum-personal-server --rescan config.ini`
 
-#### accessing from remote machine
-
-if you want to run electrum from say, a laptop, but your containers are running on a remote server, a good way to setup a secure connection to the running electrum personal server is to create an SSH tunnel.  You can then run electrum as if your server was on your local machine.  See EPS documentation for more details.
+### Logs
 
 ```sh
-ssh -fNT -L localhost:50002:{host-or-ip}:50002 {host-or-ip}
-```
-
-## Logging
-
-```sh
-# tor
-/tmp/tor
-# bitcoin
-bitcoin_data/debug.log
-#electrum personal server
 /tmp/electrumpersonalserver.log
 ```
 
-## Todo/Limitations
-
-* refactor readme to be grouped by app
-* app versions are hard-coded
-* add prompt to `pod_run.sh` to optionally call `pod_rm.sh` if it already exists
-
 ## FAQ
 
-* "Requested wallet does not exist or is not loaded. Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
+* "Requested wallet does not exist or is not loaded.  Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
   * run the following on your full node:
   * `bitcoin-cli loadwallet electrumpersonalserver`
   * if the above doesn't work, your node's wallet may be corrupt and will need to be re-created, and then re-scanned.
+
+## Todo/Limitations
+
+* probe no scripts, readme copy/paste only
+* app versions are hard-coded
