@@ -5,7 +5,7 @@ echo creating tor container
 podman run -d --pod bitcoin_pod --name tor_container \
   -v ./config/torrc:/root/torrc \
   -v tor_cookie_ephemeral:/root/.tor \
-  -v /tmp/tor:/var/log/tor tor
+  -v /tmp:/var/log/tor tor
 
 echo creating bitcoin container
 podman run -d --pod bitcoin_pod --name bitcoin_container \
