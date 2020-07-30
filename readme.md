@@ -1,6 +1,6 @@
 # Bitcoin Pod
 
-The purpose of bitcoin_pod is to setup a [bitcoin](https://github.com/bitcoin/bitcoin) full node configured to run behind [Tor](https://www.torproject.org/) by default, running inside rootless containers.
+The purpose of bitcoin_pod is to setup a [bitcoin](https://github.com/bitcoin/bitcoin) full node configured to run behind [Tor](https://www.torproject.org/) by default while running inside rootless containers.
 
 All containers are intended to be ephemeral.
 By default if you need to modify a configuration file, you will then need to restart that container for the change to take affect.
@@ -71,9 +71,10 @@ podman build -t tor -f tor.Dockerfile
 
 ```sh
 podman run -d --pod bitcoin_pod --name tor_container \
-  -v ./config/torrc:/root/torrc \
-  -v tor_cookie_ephemeral:/root/.tor \
-  -v /tmp:/var/log/tor tor
+  -v ./config/torrc:/root/torrc `# config` \
+  -v tor_cookie_ephemeral:/root/.tor `# tor control cookie` \
+  -v /tmp:/var/log/tor `# logs` \
+  tor
 ```
 
 ### Logs
@@ -92,13 +93,12 @@ podman run -d --pod bitcoin_pod --name tor_container \
 
 ### Build
 
-Setup `bitcoin_arch` to choose your machine's architecture.
-With no argument, arm-32 will be the default.
-
-The following are currently supported:
+The following architectures are currently supported:
 
 * `bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz`
 * `bitcoin-0.20.0-x86_64-linux-gnu.tar.gz`
+
+With no `bitcoin_tarball` argument, arm-32 will be the default.
 
 ```sh
 podman build -t bitcoin -f bitcoin.Dockerfile \
@@ -107,11 +107,15 @@ podman build -t bitcoin -f bitcoin.Dockerfile \
 
 ### Run
 
+Replace `bitcoin_data` with your [bitcoin data directory](https://en.bitcoinwiki.org/wiki/Data_directory) on your host machine, or create a symbolic link of the directory into your home folder with the  name `bitcoin_data`.
+Mounting this folder will ensure bitcoin data will be persistent.
+
 ```sh
 podman run -d --pod bitcoin_pod --name bitcoin_container \
-  -v ./config/bitcoin.conf:/root/bitcoin.conf \
-  -v ~/bitcoin_data:/root/.bitcoin \
-  -v tor_cookie_ephemeral:/root/.tor bitcoin
+  -v ./config/bitcoin.conf:/root/bitcoin.conf `# config` \
+  -v ~/bitcoin_data:/root/.bitcoin `# bitcoin data` \
+  -v tor_cookie_ephemeral:/root/.tor `# tor control cookie` \
+  bitcoin
 ```
 
 ### Logs
@@ -133,7 +137,7 @@ bitcoin_data/debug.log
 
 EPS recommends creating an EPS specific wallet in your full node.
 
-The following can be executed on your running bitcoin full node container
+The following can be executed on your running bitcoin full node container:
 
 ```sh
 podman exec bitcoin_container bitcoin-0.20.0/bin/bitcoin-cli createwallet electrumpersonalserver true
@@ -153,19 +157,20 @@ podman build -t electrum_server -f electrum_server.Dockerfile
 
 ### Run
 
-```sh
-podman run -d --pod bitcoin_pod --name electrum_server_container \
-  -v ./config/eps-config.ini:/root/eps-config.ini \
-  -v ~/bitcoin_data:/root/.bitcoin \
-  -v /tmp:/tmp electrum_server
-```
-
 * currently EPS needs to be run twice to get it working.
   * the first run does the imports of addresses and then exits
   * the second run actually starts the server
 * re-scanning
   * if you need to load in historical transactions you will need to run the container with a one-time alternative command
     * `.local/bin/electrum-personal-server --rescan config.ini`
+
+```sh
+podman run -d --pod bitcoin_pod --name electrum_server_container \
+  -v ./config/eps-config.ini:/root/eps-config.ini `# config` \
+  -v ~/bitcoin_data:/root/.bitcoin `# bitcoin data` \
+  -v /tmp:/tmp `# logs` \
+  electrum_server
+```
 
 ### Logs
 
@@ -178,9 +183,8 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
 * "Requested wallet does not exist or is not loaded.  Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
   * run the following on your full node:
   * `bitcoin-cli loadwallet electrumpersonalserver`
-  * if the above doesn't work, your node's wallet may be corrupt and will need to be re-created, and then re-scanned.
+  * if the above doesn't work, your node's wallet may be corrupt and may need to be re-created, and then re-scanned.
 
 ## Todo/Limitations
 
-* probe re-scan script w/ less setup
 * app versions are hard-coded
