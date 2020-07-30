@@ -16,8 +16,10 @@ By default if you need to modify a configuration file, you will then need to res
 
 ### Remote access via ssh tunnels (optional)
 
-if you want to access exposed bitcoin_pod ports from a local machine, but your containers are running on a remote server, a good way to accomplish this is by setting setup a secure connection with a background SSH tunnel.
+if you want to access exposed bitcoin_pod ports from a local machine, but your containers are hosted on a remote server, a good way to accomplish this is by setting setup a secure connection with a background SSH tunnel.
 You can then access bitcoin_pod exposed ports as if the container host was running locally.
+
+Run the following on the local machine:
 
 ```sh
 ssh -fNT -L localhost:{port}:{host-or-ip}:{port} {host-or-ip}
