@@ -58,7 +58,7 @@ See individual `Logs` sections for details.
 
 ### Prerequisites
 
-* copy `torrc.sample` to `torrc`
+* copy `config/torrc.sample` to `config/torrc`
 * update `torrc` if you don't want the default tor configuration
 
 ### Build
@@ -71,9 +71,9 @@ podman build -t tor -f tor.Dockerfile
 
 ```sh
 podman run -d --pod bitcoin_pod --name tor_container \
-  -v ./torrc:/root/torrc \
+  -v ./config/torrc:/root/torrc \
   -v tor_cookie_ephemeral:/root/.tor \
-  -v /tmp/tor:/var/log/tor tor
+  -v /tmp:/var/log/tor tor
 ```
 
 ### Logs
@@ -87,7 +87,7 @@ podman run -d --pod bitcoin_pod --name tor_container \
 
 ### Prerequisites
 
-* copy `bitcoin.conf.sample` to `bitcoin.conf`
+* copy `config/bitcoin.conf.sample` to `config/bitcoin.conf`
 * update `bitcoin.conf` if you don't want the default bitcoin configuration
 
 ### Build
@@ -101,14 +101,15 @@ The following are currently supported:
 * `bitcoin-0.20.0-x86_64-linux-gnu.tar.gz`
 
 ```sh
-podman build -t bitcoin -f bitcoin.Dockerfile --build-arg $bitcoin_arch
+podman build -t bitcoin -f bitcoin.Dockerfile \
+  --build-arg bitcoin_tarball=bitcoin-0.20.0-arm-linux-gnueabihf.tar.gz
 ```
 
 ### Run
 
 ```sh
 podman run -d --pod bitcoin_pod --name bitcoin_container \
-  -v ./bitcoin.conf:/root/bitcoin.conf \
+  -v ./config/bitcoin.conf:/root/bitcoin.conf \
   -v ~/bitcoin_data:/root/.bitcoin \
   -v tor_cookie_ephemeral:/root/.tor bitcoin
 ```
@@ -125,7 +126,7 @@ bitcoin_data/debug.log
 
 #### Setup config
 
-* copy `config.ini_sample` to `config.ini`
+* copy `config/config.ini_sample` to `config/config.ini`
 * update `config.ini` with at least your master public keys
 
 #### Setup wallet
@@ -154,7 +155,7 @@ podman build -t electrum_server -f electrum_server.Dockerfile
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
-  -v ./eps-config.ini:/root/eps-config.ini \
+  -v ./config/eps-config.ini:/root/eps-config.ini \
   -v ~/bitcoin_data:/root/.bitcoin \
   -v /tmp:/tmp electrum_server
 ```
@@ -181,5 +182,5 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
 
 ## Todo/Limitations
 
-* probe no scripts, readme copy/paste only
+* probe re-scan script w/ less setup
 * app versions are hard-coded
