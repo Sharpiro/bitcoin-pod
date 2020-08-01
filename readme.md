@@ -54,14 +54,14 @@ podman pod create --name bitcoin_pod -p 8332:8332 -p 50002:50002
 ## Logs
 
 Default log volume mounts have been setup so that logs can be viewed from the host machine and will persist between container restarts and deletions.
-See individual `Logs` sections for details.
+See individual application `Run` sections for details.
 
 ## Tor
 
 ### Prerequisites
 
 * copy `config/torrc.sample` to `config/torrc`
-* update `torrc` if you don't want the default tor configuration
+* update `torrc` if you don't want the default configuration
 
 ### Build
 
@@ -71,6 +71,12 @@ podman build -t tor -f tor.Dockerfile
 
 ### Run
 
+Follow the log file:
+
+```sh
+tail -F /tmp/tor_notices.log
+```
+
 ```sh
 podman run -d --pod bitcoin_pod --name tor_container \
   -v ./config/torrc:/root/torrc `# config` \
@@ -79,19 +85,12 @@ podman run -d --pod bitcoin_pod --name tor_container \
   tor
 ```
 
-### Logs
-
-```sh
-/tmp/tor_notices.log
-/tmp/tor_debug.log
-```
-
 ## Bitcoin
 
 ### Prerequisites
 
 * copy `config/bitcoin.conf.sample` to `config/bitcoin.conf`
-* update `bitcoin.conf` if you don't want the default bitcoin configuration
+* update `bitcoin.conf` if you don't want the default configuration
 
 ### Build
 
@@ -109,6 +108,12 @@ podman build -t bitcoin -f bitcoin.Dockerfile \
 
 ### Run
 
+Follow the log file:
+
+```sh
+tail -F ~/bitcoin_data/debug.log
+```
+
 Replace `bitcoin_data` with your [bitcoin data directory](https://en.bitcoinwiki.org/wiki/Data_directory) on your host machine, or create a symbolic link of the directory into your home folder with the  name `bitcoin_data`.
 Mounting this folder will ensure bitcoin data will be persistent.
 
@@ -120,12 +125,6 @@ podman run -d --pod bitcoin_pod --name bitcoin_container \
   bitcoin
 ```
 
-### Logs
-
-```sh
-bitcoin_data/debug.log
-```
-
 ## Electrum Personal Server
 
 ### Prerequisites
@@ -133,9 +132,10 @@ bitcoin_data/debug.log
 #### Setup config
 
 * copy `config/config.ini_sample` to `config/config.ini`
-* update `config.ini` with at least your master public keys
+* update `config.ini` with your master public key(s) in the `[master-public-keys]` section
+* update additional configs as needed
 
-#### Setup wallet
+#### Create wallet
 
 EPS recommends creating an EPS specific wallet in your full node.
 
@@ -145,10 +145,19 @@ The following can be executed on your running bitcoin full node container:
 podman exec bitcoin_container bitcoin-0.20.0/bin/bitcoin-cli createwallet electrumpersonalserver true
 ```
 
-Your EPS `config.ini` will need to be updated with the correct wallet name or empty if you intend to use your bitcoin node's default wallet
+#### Rescan wallet (optional)
 
-```properties
-wallet_filename = electrumpersonalserver
+if you need to load in historical transactions you will need to run the container with a one-time command with the blockheight of your earliest transaction.
+
+```sh
+bitcoin-cli -rpcwallet=electrumpersonalserver rescanblockchain 641755
+```
+
+An alternative is to run EPS' rescan script which determines blockheight based upon date input.
+See EPS documentation for more details.
+
+```sh
+.local/bin/electrum-personal-server --rescan config.ini
 ```
 
 ### Build
@@ -159,12 +168,13 @@ podman build -t electrum_server -f electrum_server.Dockerfile
 
 ### Run
 
-* currently EPS needs to be run twice to get it working.
-  * the first run does the imports of addresses and then exits
-  * the second run actually starts the server
-* re-scanning
-  * if you need to load in historical transactions you will need to run the container with a one-time alternative command
-    * `.local/bin/electrum-personal-server --rescan config.ini`
+Follow the log file:
+
+```sh
+tail -F /tmp/electrumpersonalserver.log
+```
+
+The first time EPS is run with a particular bitcoin full node, it will import the addresses and then exit.  After this occurs you must run `podman start electrum_server_container` to re-start the container and start the actual server.  On Subsequent runs, the application need only be run once.
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
@@ -174,18 +184,14 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
   electrum_server
 ```
 
-### Logs
-
-```sh
-/tmp/electrumpersonalserver.log
-```
-
 ## FAQ
 
-* "Requested wallet does not exist or is not loaded.  Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"
+* Why am I getting EPS error "Requested wallet does not exist or is not loaded.  Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"?
   * run the following on your full node:
   * `bitcoin-cli loadwallet electrumpersonalserver`
   * if the above doesn't work, your node's wallet may be corrupt and may need to be re-created, and then re-scanned.
+* Why is `podman pod start bitcoin_pod` not reliable?
+  * Because some of these containers rely on the other containers to be running or have ports open, it is better to start the containers sequentially when they rely on one another.
 
 ## Todo/Limitations
 
