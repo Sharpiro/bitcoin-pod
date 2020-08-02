@@ -160,6 +160,12 @@ See EPS documentation for more details.
 .local/bin/electrum-personal-server --rescan config.ini
 ```
 
+You can also use the `rescan.py` in this project, extracted from EPS, if you have access to `bitcoin-cli`
+
+```sh
+python3 rescan.py
+```
+
 ### Build
 
 ```sh
