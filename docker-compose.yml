@@ -1,4 +1,20 @@
 services:
   tor:
-    container_name: bitcoin_pod_tor
-    build: ./tor
+    container_name: full_node_tor
+    build:
+      context: ./tor
+      dockerfile: tor.Dockerfile
+  bitcoin:
+    container_name: full_node_bitcoin
+    build:
+      context: ./bitcoin
+      dockerfile: bitcoin.Dockerfile
+    depends_on:
+      - "tor"
+  electrum_personal_server:
+    container_name: full_node_eps
+    build:
+      context: ./electrum_personal_server
+      dockerfile: eps.Dockerfile
+    depends_on:
+      - "bitcoin"
