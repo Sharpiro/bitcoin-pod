@@ -1,0 +1,4 @@
+services:
+  tor:
+    container_name: bitcoin_pod_tor
+    build: ./tor
