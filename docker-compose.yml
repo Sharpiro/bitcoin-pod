@@ -7,7 +7,7 @@ services:
     profiles:
       - debug
     volumes:
-      - "tor_cookie:/var/lib/tor/control_cookie"
+      - tor_cookie:/home/bitcoin_pod_user/control_cookie
   bitcoin:
     container_name: bitcoin_pod_bitcoin
     build:
