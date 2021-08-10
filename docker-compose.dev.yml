@@ -2,10 +2,12 @@ services:
   debugger:
     image: curlimages/curl
     user: "2000"
-    command: cat /home/bitcoin_pod_user/control_cookie/cookie
+    command: ls -la /home/bitcoin_pod_user
     depends_on:
       - "tor"
     profiles:
-      - debug
+      - disabled
     volumes:
-      - tor_cookie:/home/bitcoin_pod_user/control_cookie
+      - tor_cookie:/home/bitcoin_pod_user/.tor
+    networks:
+      - primary

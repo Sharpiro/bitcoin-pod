@@ -7,12 +7,17 @@ services:
     profiles:
       - debug
     volumes:
-      - tor_cookie:/home/bitcoin_pod_user/control_cookie
+      - tor_cookie:/home/bitcoin_pod_user/.tor
+    networks:
+      primary:
+        ipv4_address: 192.168.80.2
   bitcoin:
     container_name: bitcoin_pod_bitcoin
     build:
       context: ./bitcoin
       dockerfile: bitcoin.Dockerfile
+      args:
+        - BITCOIN_VERSION
     depends_on:
       - "tor"
     ports:
@@ -20,8 +25,10 @@ services:
     profiles:
       - disabled
     volumes:
-      # - "tor_cookie:/var/lib/tor/.tor/"
-      - $BITCOIN_DATA_ROOT:/root/.bitcoin
+      - tor_cookie:/home/bitcoin_pod_user/.tor
+      - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
+    networks:
+      - primary
   electrum_personal_server:
     container_name: bitcoin_pod_eps
     build:
@@ -33,5 +40,12 @@ services:
       - "127.0.0.1:50002:50002"
     profiles:
       - disabled
+    networks:
+      - primary
 volumes:
   tor_cookie:
+networks:
+  primary:
+    ipam:
+      config:
+        - subnet: 192.168.80.0/24
