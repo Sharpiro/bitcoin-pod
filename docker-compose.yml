@@ -1,20 +1,37 @@
 services:
   tor:
-    container_name: full_node_tor
+    container_name: bitcoin_pod_tor
     build:
       context: ./tor
       dockerfile: tor.Dockerfile
+    profiles:
+      - debug
+    volumes:
+      - "tor_cookie:/var/lib/tor/control_cookie"
   bitcoin:
-    container_name: full_node_bitcoin
+    container_name: bitcoin_pod_bitcoin
     build:
       context: ./bitcoin
       dockerfile: bitcoin.Dockerfile
     depends_on:
       - "tor"
+    ports:
+      - "127.0.0.1:8332:8332"
+    profiles:
+      - disabled
+    volumes:
+      # - "tor_cookie:/var/lib/tor/.tor/"
+      - $BITCOIN_DATA_ROOT:/root/.bitcoin
   electrum_personal_server:
-    container_name: full_node_eps
+    container_name: bitcoin_pod_eps
     build:
       context: ./electrum_personal_server
       dockerfile: eps.Dockerfile
     depends_on:
       - "bitcoin"
+    ports:
+      - "127.0.0.1:50002:50002"
+    profiles:
+      - disabled
+volumes:
+  tor_cookie:

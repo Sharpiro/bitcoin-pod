@@ -1,0 +1,10 @@
+services:
+  debugger:
+    image: curlimages/curl
+    command: ls -la /var/lib/tor/control_cookie
+    depends_on:
+      - "tor"
+    profiles:
+      - debug
+    volumes:
+      - "tor_cookie:/var/lib/tor/control_cookie"
