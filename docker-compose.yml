@@ -29,6 +29,7 @@ services:
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
       - primary
+    # command: ls -la /home/bitcoin_pod_user/.bitcoin
   electrum_personal_server:
     container_name: bitcoin_pod_eps
     build:
@@ -40,6 +41,8 @@ services:
       - "127.0.0.1:50002:50002"
     profiles:
       - disabled
+    volumes:
+      - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
       - primary
 volumes:

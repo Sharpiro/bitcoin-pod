@@ -1,7 +1,5 @@
 FROM ubuntu:18.04
 
-ARG BITCOIN_VERSION
-
 RUN apt-get update
 RUN apt-get install -y gpg wget
 
@@ -11,6 +9,8 @@ USER bitcoin_pod_user
 WORKDIR /home/bitcoin_pod_user
 
 RUN mkdir .bitcoin
+
+ARG BITCOIN_VERSION
 
 RUN wget https://bitcoincore.org/bin/bitcoin-core-0.20.0/SHA256SUMS.asc
 RUN wget https://bitcoincore.org/bin/bitcoin-core-0.20.0/${BITCOIN_VERSION}
