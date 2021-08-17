@@ -1,4 +1,0 @@
-{
-  "data-root": "/home/{{user}}/encrypted_data/docker_root",
-  "iptables": false
-}
