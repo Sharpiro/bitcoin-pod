@@ -54,3 +54,19 @@ ln -s ~/mnt/encrypted_drive/app_data/bitcoin_data ~/bitcoin_data
 - would be nice to not have to depend on `podman unshare` to setup rootless volume permissions
   - there is a way to to do it just with `unshare` but not much documentation on that command
   - the uidmaps are different per machine, so can't use static numbers
+
+## container platform comparison
+
+- docker
+  - pros
+    - still seems more robust
+  - cons
+- podman
+  - pros
+    - gain "pods" feature which would remove some networking warnings and awkwardness
+    - gain kubernetes feature
+    - better rootless tooling like `podman unshare`, though this command is compatible w/ docker containers as well
+  - cons
+    - docker-compose hitting aarch64 ubuntu podman 3.2.3 gave errors
+      - error on container exit
+      - error about podman daemon not returning image ids
