@@ -22,7 +22,7 @@ rootless:
 
 ```json
 {
-  "data-root": "/home/{{user}}/docker_crypt"
+  "data-root": "/home/{{user}}/mnt/encrypted_drive/docker_root"
 }
 ```
 
