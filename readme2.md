@@ -28,6 +28,28 @@ rootless:
 }
 ```
 
-## misc
+## symlinks
 
-- create symlinks so docker daemon doesn't auto-create its `data-root`
+- create symlinks so docker won't auto-create directories in unencrypted areas
+
+### encrypted data
+
+```sh
+ln -s ~/mnt/encrypted_drive ~/encrypted_drive
+```
+
+<!-- ### docker data
+
+```sh
+ln -s ~/mnt/encrypted_drive/docker_crypt ~/docker_crypt
+```
+
+### bitcoin data
+
+```sh
+ln -s ~/mnt/encrypted_drive/app_data/bitcoin_data ~/bitcoin_data
+``` -->
+
+## todo
+
+- `data-root` and symlinks setup could likely be removed if all disks were fully encrypted instead of the OS disk unencrypted
