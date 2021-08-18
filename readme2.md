@@ -2,12 +2,10 @@
 
 ## setup bitcoin data drive permissions
 
-<!-- 2000 == 101999 always/sometimes? -->
-
 ```sh
-chmod -R 750 ~/encrypted_drive/bitcoin_data
-chown -R .`whoami` ~/encrypted_drive/bitcoin_data
-podman unshare chown -R 2000 ~/encrypted_drive/bitcoin_data
+chmod -R 750 ~/mnt/encrypted_drive/bitcoin_node/data
+chown -R .`whoami` ~/mnt/encrypted_drive/bitcoin_node/data
+podman unshare chown -R 2000 ~/mnt/encrypted_drive/bitcoin_node/data
 ```
 
 ## daemon configuration
@@ -28,7 +26,7 @@ rootless:
 }
 ```
 
-## symlinks
+<!-- ## symlinks
 
 - create symlinks so docker won't auto-create directories in unencrypted areas
 
@@ -36,7 +34,7 @@ rootless:
 
 ```sh
 ln -s ~/mnt/encrypted_drive ~/encrypted_drive
-```
+``` -->
 
 <!-- ### docker data
 
@@ -53,3 +51,6 @@ ln -s ~/mnt/encrypted_drive/app_data/bitcoin_data ~/bitcoin_data
 ## todo
 
 - `data-root` and symlinks setup could likely be removed if all disks were fully encrypted instead of the OS disk unencrypted
+- would be nice to not have to depend on `podman unshare` to setup rootless volume permissions
+  - there is a way to to do it just with `unshare` but not much documentation on that command
+  - the uidmaps are different per machine, so can't use static numbers
