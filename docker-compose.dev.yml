@@ -1,12 +1,14 @@
 services:
   debugger:
-    image: curlimages/curl
-    user: "2000"
+    image: ubuntu_dev
+    user: "2000:2000"
     command: ls -la /home/bitcoin_pod_user
     depends_on:
       - "tor"
     profiles:
       - disabled
+      - dev
+      - tor
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
     networks:
