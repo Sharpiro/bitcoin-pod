@@ -16,3 +16,10 @@ listenonion=1
 txindex=1
 # show tor debug logs
 debug=tor
+# allow rpc calls from anyone on private container network
+rpcallowip=192.168.80.0/24
+# rpc listen on private container network
+rpcbind=127.0.0.1
+rpcbind=192.168.80.3
+# load wallet on startup
+wallet=electrumpersonalserver

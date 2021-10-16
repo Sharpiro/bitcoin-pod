@@ -4,8 +4,9 @@ services:
     user: "2000:2000"
     command: ls -la /home/bitcoin_pod_user
     depends_on:
-      - "tor"
+      - "electrum_personal_server"
     profiles:
+      - debug
       - disabled
       - dev
       - tor

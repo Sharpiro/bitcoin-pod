@@ -5,6 +5,7 @@ services:
       context: ./tor
       dockerfile: tor.Dockerfile
     profiles:
+      - bitcoin_only
       - debug
       - initialize
       - run
@@ -27,6 +28,7 @@ services:
     ports:
       - "127.0.0.1:8332:8332"
     profiles:
+      - bitcoin_only
       - debug
       - initialize
       - run
@@ -35,7 +37,7 @@ services:
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
       - primary
-  electrum_personal_server:
+  eps:
     container_name: bitcoin_pod_eps
     build:
       context: ./electrum_personal_server
@@ -45,6 +47,7 @@ services:
     ports:
       - "127.0.0.1:50002:50002"
     profiles:
+      - debug
       - disabled
       - run
     volumes:
