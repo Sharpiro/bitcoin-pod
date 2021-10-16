@@ -22,7 +22,7 @@ You can then access bitcoin_pod exposed ports as if the container host was runni
 Run the following on the local machine:
 
 ```sh
-ssh -fNT -L localhost:{port}:{host-or-ip}:{port} {host-or-ip}
+ssh -fNT -L localhost:{port}:localhost:{port} {ssh-name-or-host-or-ip}
 ```
 
 ### Encrypted disk (optional)
@@ -142,7 +142,7 @@ EPS recommends creating an EPS specific wallet in your full node.
 The following can be executed on your running bitcoin full node container:
 
 ```sh
-podman exec bitcoin_container bitcoin-0.20.0/bin/bitcoin-cli createwallet electrumpersonalserver true
+docker exec bitcoin_pod_bitcoin bitcoin/bin/bitcoin-cli createwallet electrumpersonalserver true
 ```
 
 #### Rescan wallet (optional)
@@ -150,14 +150,14 @@ podman exec bitcoin_container bitcoin-0.20.0/bin/bitcoin-cli createwallet electr
 if you need to load in historical transactions you will need to run the container with a one-time command with the blockheight of your earliest transaction.
 
 ```sh
-bitcoin-cli -rpcwallet=electrumpersonalserver rescanblockchain 641755
+docker exec bitcoin_pod_bitcoin bitcoin/bin/bitcoin-cli -rpcwallet=electrumpersonalserver rescanblockchain [block_height]
 ```
 
 An alternative is to run EPS' rescan script which determines blockheight based upon date input.
 See EPS documentation for more details.
 
 ```sh
-.local/bin/electrum-personal-server --rescan config.ini
+docker exec -it bitcoin_pod_eps .local/bin/electrum-personal-server --rescan eps-config.ini
 ```
 
 You can also use the `rescan.py` in this project, extracted from EPS, if you have access to `bitcoin-cli`
@@ -180,7 +180,7 @@ Follow the log file:
 tail -F /tmp/electrumpersonalserver.log
 ```
 
-The first time EPS is run with a particular bitcoin full node, it will import the addresses and then exit.  After this occurs you must run `podman start electrum_server_container` to re-start the container and start the actual server.  On Subsequent runs, the application need only be run once.
+The first time EPS is run with a particular bitcoin full node, it will import the addresses and then exit.  After this occurs you must run `docker-compose up` to re-start the container and start the actual server.  On Subsequent runs, the application need only be run once.
 
 ```sh
 podman run -d --pod bitcoin_pod --name electrum_server_container \
@@ -194,7 +194,7 @@ podman run -d --pod bitcoin_pod --name electrum_server_container \
 
 * Why am I getting EPS error "Requested wallet does not exist or is not loaded.  Wallet related RPC call failed, possibly the bitcoin node was compiled with the disable wallet flag"?
   * run the following on your full node:
-  * `bitcoin-cli loadwallet electrumpersonalserver`
+  * `docker exec bitcoin/bin/bitcoin-cli loadwallet electrumpersonalserver`
   * if the above doesn't work, your node's wallet may be corrupt and may need to be re-created, and then re-scanned.
 * Why is `podman pod start bitcoin_pod` not reliable?
   * Because some of these containers rely on the other containers to be running or have ports open, it is better to start the containers sequentially when they rely on one another.
