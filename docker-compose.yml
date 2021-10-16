@@ -36,7 +36,8 @@ services:
       - tor_cookie:/home/bitcoin_pod_user/.tor
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
-      - primary
+      primary:
+        ipv4_address: 192.168.80.3
   eps:
     container_name: bitcoin_pod_eps
     build:
