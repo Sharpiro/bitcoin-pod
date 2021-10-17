@@ -18,19 +18,13 @@ This setup can be greatly simplified by not using an external encrypted disk and
 
 ## Tor
 
-### Prerequisites
+### Application Config
 
 * copy `tor/torrc.sample.conf` to `tor/torrc.conf`
 
-<!-- ## Run
-
-```sh
-docker-compose --profile tor up --build -d
-``` -->
-
 ## Bitcoin
 
-### Prerequisites
+### Application Config
 
 * copy `bitcoin/bitcoin.sample.conf` to `bitcoin/bitcoin.conf`
 
@@ -49,15 +43,12 @@ update `.env` file.
     * arm-linux-gnueabihf
     * x86_64-linux-gnu
 
-<!-- ### Build -->
-
-<!-- ### Run
-
-```sh
-docker-compose --profile bitcoin up --build -d
-``` -->
-
 ## Electrum Personal Server (EPS)
+
+### Application Config
+
+* copy `electrum_personal_server/eps-config.sample.ini` to `electrum_personal_server/eps-config.ini`
+* update `eps-config.ini` with your master public key(s) in the `[master-public-keys]` section
 
 ### Environment Variables
 
@@ -66,14 +57,7 @@ update `.env` file.
 * EPS_VERSION
   * version to install
 
-### Prerequisites
-
-#### Setup config
-
-* copy `electrum_personal_server/eps-config.sample.ini` to `electrum_personal_server/eps-config.ini`
-* update `eps-config.ini` with your master public key(s) in the `[master-public-keys]` section
-
-#### Create wallet (optional)
+### Create wallet (optional)
 
 EPS recommends creating an EPS specific wallet in your full node if you haven't already created one.
 
@@ -83,21 +67,42 @@ The following can be executed on your running bitcoin full node container:
 docker-compose exec bitcoin bitcoin/bin/bitcoin-cli createwallet electrumpersonalserver true
 ```
 
-#### Rescan wallet (optional)
+### Rescan wallet (optional)
 
 if you need to load in historical transactions you will need to run the container with a one-time command with the blockheight of your earliest transaction.
 
 Run EPS' rescan script which determines blockheight based upon date input.
+Bitcoin should already be running, see `Run` section below.
 
 ```sh
-docker-compose --profile bitcoin--rm eps .local/bin/electrum-personal-server --rescan eps-config.ini
+docker-compose --profile bitcoin run --rm eps .local/bin/electrum-personal-server --rescan eps-config.ini
 ```
 
-<!-- ### Build -->
+## Run
 
-### Run
+### Run Tor profile
 
-The first time EPS is run with a particular bitcoin full node, it will import the addresses and then exit.  After this occurs you must run `docker-compose up` to re-start the container and start the actual server.  On Subsequent runs, the application need only be run once.
+Run Tor only.
+
+```sh
+docker-compose --profile tor up --build -d
+```
+
+### Run Bitcoin profile
+
+Run Bitcoin and its dependencies.
+
+```sh
+docker-compose --profile bitcoin up --build -d
+```
+
+### Run Electrum Personal Server profile
+
+Run Electrum Personal Server and its dependencies.
+
+```sh
+docker-compose --profile eps up --build -d
+```
 
 ## Optional configurations
 
@@ -156,7 +161,7 @@ rootless: `~/.config/docker/daemon.json`
   * see bitcoin configuration file for example on how to auto load wallets
   * manually load wallet
     * run the following on your full node:
-      * `docker exec bitcoin/bin/bitcoin-cli loadwallet electrumpersonalserver`
+      * `docker-compose exec bitcoin bitcoin/bin/bitcoin-cli loadwallet electrumpersonalserver`
     * if the above doesn't work, your node's wallet may be corrupt and may need to be re-created, and then re-scanned.
 
 ## Todo/Limitations

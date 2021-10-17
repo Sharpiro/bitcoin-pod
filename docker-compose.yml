@@ -7,7 +7,7 @@ services:
     profiles:
       - tor
       - bitcoin
-      - all
+      - eps
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
     networks:
@@ -27,7 +27,7 @@ services:
       - "127.0.0.1:8332:8332"
     profiles:
       - bitcoin
-      - all
+      - eps
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
@@ -46,7 +46,7 @@ services:
     ports:
       - "127.0.0.1:50002:50002"
     profiles:
-      - all
+      - eps
     volumes:
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
