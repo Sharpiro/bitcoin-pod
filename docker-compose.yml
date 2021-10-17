@@ -5,11 +5,9 @@ services:
       context: ./tor
       dockerfile: tor.Dockerfile
     profiles:
-      - bitcoin_only
-      - debug
-      - initialize
-      - run
       - tor
+      - bitcoin
+      - all
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
     networks:
@@ -22,16 +20,14 @@ services:
       dockerfile: bitcoin.Dockerfile
       args:
         - BITCOIN_VERSION
-        - BITCOIN_TARGET
+        - BITCOIN_PLATFORM
     depends_on:
       - "tor"
     ports:
       - "127.0.0.1:8332:8332"
     profiles:
-      - bitcoin_only
-      - debug
-      - initialize
-      - run
+      - bitcoin
+      - all
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
@@ -43,14 +39,14 @@ services:
     build:
       context: ./electrum_personal_server
       dockerfile: eps.Dockerfile
+      args:
+        - EPS_VERSION
     depends_on:
       - "bitcoin"
     ports:
       - "127.0.0.1:50002:50002"
     profiles:
-      - debug
-      - disabled
-      - run
+      - all
     volumes:
       - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:

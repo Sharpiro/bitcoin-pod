@@ -3,14 +3,10 @@ services:
     image: ubuntu_dev
     user: "2000:2000"
     command: ls -la /home/bitcoin_pod_user
-    depends_on:
-      - "electrum_personal_server"
     profiles:
       - debug
-      - disabled
-      - dev
-      - tor
     volumes:
       - tor_cookie:/home/bitcoin_pod_user/.tor
+      - $BITCOIN_DATA_ROOT:/home/bitcoin_pod_user/.bitcoin
     networks:
       - primary

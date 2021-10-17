@@ -10,8 +10,8 @@ WORKDIR /home/bitcoin_pod_user
 RUN mkdir .bitcoin
 
 ARG BITCOIN_VERSION
-ARG BITCOIN_TARGET
-ENV BITCOIN_TARBALL=bitcoin-${BITCOIN_VERSION}-${BITCOIN_TARGET}.tar.gz
+ARG BITCOIN_PLATFORM
+ENV BITCOIN_TARBALL=bitcoin-${BITCOIN_VERSION}-${BITCOIN_PLATFORM}.tar.gz
 
 RUN wget https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/SHA256SUMS.asc
 RUN wget https://bitcoincore.org/bin/bitcoin-core-${BITCOIN_VERSION}/${BITCOIN_TARBALL}
